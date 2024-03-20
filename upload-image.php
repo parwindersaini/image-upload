@@ -53,7 +53,7 @@ function wg_image_upload_form()
 }
 
 // Function to resize image
-function resizeImg($sourceImage, $targetWidth, $targetHeight, $resized_upload_path, $file_type)
+function resizeImg($sourceImage, $targetWidth, $targetHeight, $resized_upload_path, $extension)
 {
     // Get the dimensions of the original image
     list($sourceWidth, $sourceHeight) = getimagesize($sourceImage);
@@ -61,7 +61,7 @@ function resizeImg($sourceImage, $targetWidth, $targetHeight, $resized_upload_pa
     // Create a new image with the target dimensions
     $targetImage = imagecreatetruecolor($targetWidth, $targetHeight);
     $upload_dir = wp_upload_dir();
-    if ($file_type == 'image/jpeg') {
+    if ($extension == 'jpeg'|| $extension == 'jpg') {
         // Load the original image
         $sourceImage = imagecreatefromjpeg($sourceImage); // Change this based on your image type
 
@@ -69,7 +69,7 @@ function resizeImg($sourceImage, $targetWidth, $targetHeight, $resized_upload_pa
         imagecopyresampled($targetImage, $sourceImage, 0, 0, 0, 0, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
         imagejpeg($targetImage, $resized_upload_path); // Change the file name and extension based on your needs
     }
-    if ($file_type == 'image/png') {
+    if ($extension == 'png') {
         // Load the original image
         $sourceImage = imagecreatefrompng($sourceImage); // Change this based on your image type
 
@@ -91,11 +91,11 @@ function wg_handle_image_upload()
 
     if (isset($_FILES['image'])) {
         $file = $_FILES['image'];
-        $file_type = $file['type'];
-        if ($file_type == 'image/jpeg' || $file_type == 'image/png') {
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);        
+        if ($extension == 'jpeg' || $extension == 'jpg' || $extension == 'png') {
 
             if ($file['error'] === UPLOAD_ERR_OK) {
-                $file_name = time() . '.jpg';
+                $file_name = time() .'.'. $extension;
                 $sourceImage = $file['tmp_name']; // Path to the original image
                 $targetWidth = 300; // Desired width
                 $targetHeight = 200; // Desired height
@@ -103,7 +103,7 @@ function wg_handle_image_upload()
                 $upload_path = $upload_dir['path'] . '/' . $file_name;
                 $resized_upload_path = $upload_dir['path'] . '/resized' . $file_name;
                 $file_type = $file['type'];
-                resizeImg($sourceImage, $targetWidth, $targetHeight, $resized_upload_path, $file_type);
+                resizeImg($sourceImage, $targetWidth, $targetHeight, $resized_upload_path, $extension);
 
                 // Move the uploaded file to the WordPress uploads directory
                 move_uploaded_file($file['tmp_name'], $upload_path);
@@ -117,7 +117,7 @@ function wg_handle_image_upload()
                 echo '<p>Error uploading image. Please try again.</p>';
             }
         } else {
-            echo '<p>Please select jpeg and png file and less then 1mb size</p>';
+            echo '<p>Please select jpg,jpeg and png file and less then 1mb size</p>';
         }
         // Check for errors
     }
